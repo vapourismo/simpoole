@@ -89,4 +89,4 @@ jobs:
 
       - run: cabal sdist -o- > release.tar.gz
 
-      - run: cabal upload -u _ -p _ release.tar.gz
+      - run: cabal upload -u '${{ secrets.HACKAGE_USER }}' -p '${{ secrets.HACKAGE_PASSWORD }}' release.tar.gz
