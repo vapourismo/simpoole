@@ -18,20 +18,20 @@ module Simpoole
   )
 where
 
-import Control.Concurrent.Classy qualified as Concurrent
-import Control.Concurrent.Classy.Async qualified as Async
-import Control.Monad (forever, unless, void)
-import Control.Monad.Catch qualified as Catch
-import Control.Monad.IO.Class (MonadIO (liftIO))
-import Data.Foldable (for_)
-import Data.Sequence qualified as Seq
-import Data.Time qualified as Time
-import Numeric.Natural (Natural)
+import qualified Control.Concurrent.Classy as Concurrent
+import qualified Control.Concurrent.Classy.Async as Async
+import           Control.Monad (forever, unless, void)
+import qualified Control.Monad.Catch as Catch
+import           Control.Monad.IO.Class (MonadIO (liftIO))
+import           Data.Foldable (for_)
+import qualified Data.Sequence as Seq
+import qualified Data.Time as Time
+import           Numeric.Natural (Natural)
 
 -- | Pool of resources
 data Pool m a = Pool
   { pool_acquire :: m a
-  , pool_return  :: a -> m ()
+  , pool_return :: a -> m ()
   , pool_destroy :: a -> m ()
   , pool_metrics :: m (Metrics Natural)
   }
@@ -172,11 +172,11 @@ poolMetrics = pool_metrics
 
 -- | Pool metrics
 data Metrics a = Metrics
-  { metrics_createdResources   :: a
+  { metrics_createdResources :: a
   -- ^ Total number of resources created
   , metrics_destroyedResources :: a
   -- ^ Total number of resources destroyed
-  , metrics_maxLiveResources   :: a
+  , metrics_maxLiveResources :: a
   -- ^ Maximum number of resources that were alive simultaneously
   }
   deriving stock (Show, Functor, Foldable, Traversable)

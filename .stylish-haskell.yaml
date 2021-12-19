@@ -179,7 +179,7 @@ steps:
       space_surround: false
 
       # Move 'qualified' keyword after imported module name.
-      post_qualify: true
+      post_qualify: false
 
   # Language pragmas
   - language_pragmas:
