@@ -14,6 +14,7 @@ jobs:
   BuildAndTest:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ghc:
           - "9.2.1"
