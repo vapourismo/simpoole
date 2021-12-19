@@ -3,7 +3,7 @@ name:               simpoole
 version:            0.0.0
 category:           Data, Resources
 synopsis:           Simple pool
-description:        Simple pool
+description:        Provides a simple pool implementation.
 author:             Ole Krüger <haskell-simpoole@vprsm.de>
 maintainer:         Ole Krüger <haskell-simpoole@vprsm.de>
 homepage:           https://github.com/vapourismo/simpoole
@@ -26,7 +26,7 @@ library
   import:           warnings, extensions
   default-language: Haskell2010
   ghc-options:      -Wall -Wextra -Wno-name-shadowing -Wredundant-constraints
-  build-depends:    base, time, exceptions, concurrency, containers
+  build-depends:    base == 4.*, time, exceptions, concurrency, containers
   hs-source-dirs:   lib
   exposed-modules:  Simpoole
 
