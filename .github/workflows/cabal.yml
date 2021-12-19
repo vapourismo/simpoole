@@ -62,7 +62,7 @@ jobs:
 
       - uses: haskell/actions/setup@v1.2
         with:
-          ghc-version: "latest"
+          ghc-version: "8.10.7"
 
       - name: Install HLint
         run: cabal install --installdir=. hlint --constraint 'hlint >= 3.3'
