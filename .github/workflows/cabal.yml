@@ -1,12 +1,7 @@
 name: Haskell Integration
 
 on:
-  push:
-    branches:
-      - master
-
-    tags:
-      - "v*"
+  push: {}
 
   pull_request:
     branches:
@@ -74,19 +69,3 @@ jobs:
 
       - name: Run HLint
         run: ./hlint .
-
-  Upload:
-    runs-on: ubuntu-latest
-    environment: hackage
-    needs:
-      - BuildAndTest
-      - HLint
-    if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: haskell/actions/setup@v1.2
-
-      - run: cabal sdist -o- > release.tar.gz
-
-      - run: cabal upload -u '${{ secrets.HACKAGE_USER }}' -p '${{ secrets.HACKAGE_PASSWORD }}' release.tar.gz
