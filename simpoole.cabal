@@ -38,6 +38,8 @@ test-suite simpoole-tests
   ghc-options:      -Wall -Wextra -Wno-name-shadowing -threaded -with-rtsopts=-N
   build-depends:    base,
                     simpoole,
+                    concurrency,
                     hspec >= 2.7.1
   hs-source-dirs:   test
   main-is:          Main.hs
+  other-modules:    SimpooleSpec

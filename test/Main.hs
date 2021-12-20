@@ -1,6 +1,8 @@
 module Main (main) where
 
-import Test.Hspec
+import qualified SimpooleSpec
+import           Test.Hspec (describe, hspec)
 
 main :: IO ()
-main = hspec $ pure ()
+main = hspec $
+  describe "Simpoole" SimpooleSpec.spec
