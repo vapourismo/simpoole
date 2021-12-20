@@ -89,12 +89,16 @@ newUnlimitedPool create destroy maxIdleTime = do
       destroy resource `Catch.finally` succIORef (metrics_destroyedResources metricRefs)
 
     acquireResource = do
-      (mbResource, tailSize) <- Concurrent.atomicModifyIORef' leftOversRef $ \leftOvers ->
+      mbResource <- Concurrent.atomicModifyIORef' leftOversRef $ \leftOvers ->
         case leftOvers of
-          Resource _ head Seq.:<| tail -> (tail, (Just head, Seq.length tail))
-          _empty -> (leftOvers, (Nothing, 0))
+          Resource _ head Seq.:<| tail -> (tail, Just head)
+          _empty -> (leftOvers, Nothing)
       resource <- maybe wrappedCreate pure mbResource
-      maxIORef (metrics_maxLiveResources metricRefs) (fromIntegral tailSize + 1)
+
+      numDestroyed <- Concurrent.readIORef (metrics_destroyedResources metricRefs)
+      numCreated <- Concurrent.readIORef (metrics_createdResources metricRefs)
+      maxIORef (metrics_maxLiveResources metricRefs) (numCreated - numDestroyed)
+
       pure resource
 
     returnResource value = do
