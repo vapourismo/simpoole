@@ -199,7 +199,7 @@ data Metrics a = Metrics
   --
   -- @since 0.0.0
   }
-  deriving stock (Show, Functor, Foldable, Traversable)
+  deriving stock (Show, Read, Eq, Ord, Functor, Foldable, Traversable)
 
 -- | Create the IORefs which capture the metric values.
 mkMetricRefs :: Concurrent.MonadConc m => m (Metrics (Concurrent.IORef m Natural))
