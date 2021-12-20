@@ -136,7 +136,7 @@ newPool
   -> Int
   -- ^ Maximum number of resources to exist at the same time
   -> Time.NominalDiffTime
-  -- ^ Maximum idle time (+-1s) after which a resource is destroyed
+  -- ^ Maximum idle time after which a resource is destroyed
   -> m (Pool m a)
 newPool create destroy maxElems maxIdleTime = do
   basePool <- newUnlimitedPool create destroy maxIdleTime
