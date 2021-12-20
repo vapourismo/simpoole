@@ -29,6 +29,8 @@ import qualified Data.Time as Time
 import           Numeric.Natural (Natural)
 
 -- | Pool of resources
+--
+-- @since 0.0.0
 data Pool m a = Pool
   { pool_acquire :: m a
   , pool_return :: a -> m ()
@@ -37,6 +39,8 @@ data Pool m a = Pool
   }
 
 -- | Lift a natural transformation @m ~> n@ to @Pool m ~> Pool n@.
+--
+-- @since 0.0.0
 mapPool
   :: (forall x. m x -> n x)
   -> Pool m a
@@ -59,6 +63,8 @@ data Resource a =
     -- ^ The resource itesemf
 
 -- | Create a new pool that has no limit on how many resources it may create and hold.
+--
+-- @since 0.0.0
 newUnlimitedPool
   :: (Concurrent.MonadConc m, MonadIO m)
   => m a
@@ -119,6 +125,8 @@ newUnlimitedPool create destroy maxIdleTime = do
 -- | Similar to 'newUnlimitedPool' but allows you to limit the number of resources that will exist
 -- at the same time. When all resources are currently in use, further resource acquisition will
 -- block until one is no longer in use.
+--
+-- @since 0.0.0
 newPool
   :: (Concurrent.MonadConc m, MonadIO m, MonadFail m)
   => m a
@@ -152,6 +160,8 @@ newPool create destroy maxElems maxIdleTime = do
     }
 
 -- | Use a resource from the pool.
+--
+-- @since 0.0.0
 withResource :: Catch.MonadMask m => Pool m a -> (a -> m r) -> m r
 withResource pool f =
   Catch.mask $ \restore -> do
@@ -163,6 +173,8 @@ withResource pool f =
 {-# INLINE withResource #-}
 
 -- | Fetch pool metrics.
+--
+-- @since 0.0.0
 poolMetrics :: Pool m a -> m (Metrics Natural)
 poolMetrics = pool_metrics
 
@@ -171,13 +183,21 @@ poolMetrics = pool_metrics
 ---
 
 -- | Pool metrics
+--
+-- @since 0.0.0
 data Metrics a = Metrics
   { metrics_createdResources :: a
   -- ^ Total number of resources created
+  --
+  -- @since 0.0.0
   , metrics_destroyedResources :: a
   -- ^ Total number of resources destroyed
+  --
+  -- @since 0.0.0
   , metrics_maxLiveResources :: a
   -- ^ Maximum number of resources that were alive simultaneously
+  --
+  -- @since 0.0.0
   }
   deriving stock (Show, Functor, Foldable, Traversable)
 
