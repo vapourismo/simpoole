@@ -163,7 +163,9 @@ newPool create destroy maxElems maxIdleTime = do
     , pool_metrics = pool_metrics basePool
     }
 
--- | Use a resource from the pool.
+-- | Use a resource from the pool. Once the continuation returns, the resource will be returned to
+-- the pool. If the given continuation throws an error then the acquired resource will be destroyed
+-- instead.
 --
 -- @since 0.0.0
 withResource :: Catch.MonadMask m => Pool m a -> (a -> m r) -> m r
