@@ -1,6 +1,6 @@
 cabal-version:      2.2
 name:               simpoole
-version:            0.0.0
+version:            0.0.1
 category:           Data, Resources
 synopsis:           Simple pool
 description:        Provides a simple pool implementation.
