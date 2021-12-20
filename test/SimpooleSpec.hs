@@ -1,5 +1,4 @@
 {-# LANGUAGE NumericUnderscores #-}
-{-# LANGUAGE TupleSections #-}
 
 module SimpooleSpec (spec) where
 
