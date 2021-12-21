@@ -41,16 +41,21 @@ import           Numeric.Natural (Natural)
 data ReturnPolicy
   = ReturnToFront
   -- ^ Return resources to the front. Resources that have been used recently are more likely to be
-  -- reused again quicker. This strategy is good if you want to scale down the pool more quickly in
-  -- case resources are not needed.
+  -- reused again quicker.
+  --
+  -- This strategy is good if you want to scale down the pool more quickly in case resources are not
+  -- needed.
   --
   -- @since 0.1.0
   | ReturnToBack
   -- ^ Return resources to the back. Resources that have been used recently are less likely to be
-  -- used again quicker. Use this strategy if you want to keep more resources in the pool fresh, or
-  -- when maintaining the pool in order to be ready for burst workloads.
-  -- This strategy can lead to no resources ever been freed when all resources are used within the
-  -- idle timeout.
+  -- used again quicker.
+  --
+  -- Use this strategy if you want to keep more resources in the pool fresh, or when maintaining the
+  -- pool in order to be ready for burst workloads.
+  --
+  -- Note: This strategy can lead to no resources ever being destroyed when all resources are
+  -- continuously used within the idle timeout.
   --
   -- @since 0.1.0
   | ReturnToMiddle
