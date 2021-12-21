@@ -82,7 +82,7 @@ applyReturnPolicy policy value seq =
 -- | Lets you configure certain behaviours of the pool
 --
 -- @since 0.1.0
-data Settings = PoolSettings
+data Settings = Settings -- ^ @since 0.2.0
   { settings_idleTimeout :: Maybe Time.NominalDiffTime
   -- ^ Maximum idle time after which a resource is destroyed
   --
@@ -105,7 +105,7 @@ data Settings = PoolSettings
 --
 -- @since 0.1.0
 defaultSettings :: Settings
-defaultSettings = PoolSettings
+defaultSettings = Settings
   { settings_idleTimeout = Just 60 -- 60 seconds
   , settings_returnPolicy = ReturnToMiddle
   , settings_maxLiveLimit = Nothing
