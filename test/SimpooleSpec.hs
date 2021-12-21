@@ -5,7 +5,6 @@ module SimpooleSpec (spec) where
 import qualified Control.Concurrent.Classy as Concurrent
 import qualified Control.Concurrent.Classy.Async as Async
 import           Control.Monad (join)
-import           Control.Monad.IO.Class (liftIO)
 import           Numeric.Natural (Natural)
 import qualified Simpoole as Pool
 import           Test.Hspec (Spec, describe, it, shouldBe, shouldSatisfy)
@@ -67,7 +66,9 @@ spec = do
         Pool.withResource pool $ const $ Concurrent.threadDelay 1_000
 
       metrics <- Pool.poolMetrics pool
-      liftIO $ print metrics
+
+      -- After finishing the workload, all resources should be idle.
+      Pool.metrics_maxLiveResources metrics `shouldBe` Pool.metrics_idleResources metrics
 
       created <- Concurrent.readIORef createdRef
       Pool.metrics_createdResources metrics `shouldBe` created

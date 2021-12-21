@@ -80,27 +80,43 @@ newUnlimitedPool
 newUnlimitedPool create destroy maxIdleTime = do
   leftOversRef <- Concurrent.newIORefN "leftOvers" Seq.empty
 
-  metricRefs <- mkMetricRefs
+  createdRef <- Concurrent.newIORefN "created" 0
+  destroyedRef <- Concurrent.newIORefN "destroyed" 0
+  maxLiveRef <- Concurrent.newIORefN "maxLive" 0
 
   let
+    getMetrics = do
+      created <- Concurrent.readIORef createdRef
+      destroyed <- Concurrent.readIORef destroyedRef
+      maxLive <- Concurrent.readIORef maxLiveRef
+      leftOvers <- Concurrent.readIORef leftOversRef
+
+      pure Metrics
+        { metrics_createdResources = created
+        , metrics_destroyedResources = destroyed
+        , metrics_maxLiveResources = maxLive
+        , metrics_idleResources = fromIntegral (Seq.length leftOvers)
+        }
+
     wrappedCreate = do
       value <- create
-      succIORef (metrics_createdResources metricRefs)
+      succIORef createdRef
       pure value
 
     wrappedDestroy resource =
-      destroy resource `Catch.finally` succIORef (metrics_destroyedResources metricRefs)
+      destroy resource `Catch.finally` succIORef destroyedRef
 
     acquireResource = do
       mbResource <- Concurrent.atomicModifyIORef' leftOversRef $ \leftOvers ->
         case leftOvers of
           Resource _ head Seq.:<| tail -> (tail, Just head)
           _empty -> (leftOvers, Nothing)
+
       resource <- maybe wrappedCreate pure mbResource
 
-      numDestroyed <- Concurrent.readIORef (metrics_destroyedResources metricRefs)
-      numCreated <- Concurrent.readIORef (metrics_createdResources metricRefs)
-      maxIORef (metrics_maxLiveResources metricRefs) (numCreated - numDestroyed)
+      numDestroyed <- Concurrent.readIORef destroyedRef
+      numCreated <- Concurrent.readIORef createdRef
+      maxIORef maxLiveRef (numCreated - numDestroyed)
 
       pure resource
 
@@ -126,7 +142,7 @@ newUnlimitedPool create destroy maxIdleTime = do
     { pool_acquire = acquireResource
     , pool_return = returnResource
     , pool_destroy = wrappedDestroy
-    , pool_metrics = readMetricRefs metricRefs
+    , pool_metrics = getMetrics
     }
 
 -- | Similar to 'newUnlimitedPool' but allows you to limit the number of resources that will exist
@@ -231,20 +247,12 @@ data Metrics a = Metrics
   -- ^ Maximum number of resources that were alive simultaneously
   --
   -- @since 0.0.0
+  , metrics_idleResources :: a
+  -- ^ Number of resources currently idle
+  --
+  -- @since 0.1.0
   }
   deriving stock (Show, Read, Eq, Ord, Functor, Foldable, Traversable)
-
--- | Create the IORefs which capture the metric values.
-mkMetricRefs :: Concurrent.MonadConc m => m (Metrics (Concurrent.IORef m Natural))
-mkMetricRefs =
-  Metrics
-    <$> Concurrent.newIORefN "created" 0
-    <*> Concurrent.newIORefN "destroyed" 0
-    <*> Concurrent.newIORefN "maxLive" 0
-
--- | Read all the metric values.
-readMetricRefs :: Concurrent.MonadConc m => Metrics (Concurrent.IORef m a) -> m (Metrics a)
-readMetricRefs = traverse Concurrent.readIORef
 
 -- | Increase a value held by an IORef by one.
 succIORef :: (Concurrent.MonadConc m, Enum a) => Concurrent.IORef m a -> m ()
