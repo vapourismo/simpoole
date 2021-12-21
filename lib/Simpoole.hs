@@ -19,6 +19,7 @@ module Simpoole
 
   , Settings (..)
   , defaultSettings
+  , ReturnPolicy (..)
 
   , Metrics (..)
   )
