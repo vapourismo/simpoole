@@ -90,6 +90,11 @@ jobs:
 
       - uses: haskell/actions/setup@v1.2
 
+      - run: |
+          git grep -nE '@since\s+[^0-9\.]+' && (echo Found unspecified versions!; exit 1) || true
+
       - run: cabal sdist -o .
 
-      - run: cabal upload -u ${{ secrets.HACKAGE_USER }} -p ${{ secrets.HACKAGE_PASSWORD }} ./simpoole-*.tar.gz
+      - run: |
+          version=$(echo '${{ github.ref_name }}' | sed -r 's/^v([0-9\.]+)(-.*)?/\1/')
+          cabal upload -u ${{ secrets.HACKAGE_USER }} -p ${{ secrets.HACKAGE_PASSWORD }} ./simpoole-$version.tar.gz
