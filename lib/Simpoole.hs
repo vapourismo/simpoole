@@ -183,7 +183,7 @@ withResource pool f =
 
 -- | Acquire a resource.
 --
--- @since 0.0.2
+-- @since 0.1.0
 acquireResource :: Pool m a -> m a
 acquireResource = pool_acquire
 
@@ -191,7 +191,7 @@ acquireResource = pool_acquire
 
 -- | Return a resource to the pool.
 --
--- @since 0.0.2
+-- @since 0.1.0
 returnResource :: Pool m a -> a -> m ()
 returnResource = pool_return
 
@@ -199,7 +199,7 @@ returnResource = pool_return
 
 -- | Destroy a resource.
 --
--- @since 0.0.2
+-- @since 0.1.0
 destroyResource :: Pool m a -> a -> m ()
 destroyResource = pool_destroy
 
