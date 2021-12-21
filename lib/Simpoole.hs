@@ -17,6 +17,9 @@ module Simpoole
   , destroyResource
   , poolMetrics
 
+  , Settings (..)
+  , defaultSettings
+
   , Metrics (..)
   )
 where
@@ -30,6 +33,64 @@ import           Data.Foldable (for_)
 import qualified Data.Sequence as Seq
 import qualified Data.Time as Time
 import           Numeric.Natural (Natural)
+
+-- | Strategy to use when returning resources to the pool
+--
+-- @since 0.1.0
+data ReturnPolicy
+  = ReturnToFront
+  -- ^ Return resources to the front. Resources that have been used recently are more likely to be
+  -- reused again quicker. This strategy is good if you want to scale down the pool more quickly in
+  -- case resources are not needed.
+  --
+  -- @since 0.1.0
+  | ReturnToBack
+  -- ^ Return resources to the back. Resources that have been used recently are less likely to be
+  -- used again quicker. Use this strategy if you want to keep more resources in the pool fresh, or
+  -- when maintaining the pool in order to be ready for burst workloads.
+  -- This strategy can lead to no resources ever been freed when all resources are used within the
+  -- idle timeout.
+  --
+  -- @since 0.1.0
+  | ReturnToMiddle
+  -- ^ Return resources to the middle. This offers a middleground between 'ReturnToFront' and
+  -- 'ReturnToBack'. By ensuring that the starting sub-sequence of resources is reused quicker but
+  -- the trailing sub-sequence is not and therefore released more easily.
+  --
+  -- @since 0.1.0
+  deriving stock (Show, Read, Eq, Ord, Enum, Bounded)
+
+-- | Insert a value based on the return policy.
+applyReturnPolicy :: ReturnPolicy -> a -> Seq.Seq a -> Seq.Seq a
+applyReturnPolicy policy value seq =
+  case policy of
+    ReturnToFront -> value Seq.<| seq
+    ReturnToBack -> seq Seq.|> value
+    ReturnToMiddle -> Seq.insertAt middleIndex value seq
+  where
+    middleIndex
+      | even (Seq.length seq) = div (Seq.length seq) 2
+      | otherwise = div (Seq.length seq) 2 + 1
+
+-- | Lets you configure certain behaviours of the pool
+--
+-- @since 0.1.0
+data Settings = PoolSettings
+  { settings_idleTimeout :: Time.NominalDiffTime
+  -- ^ Maximum idle time after which a resource is destroyed
+  --
+  -- @since 0.1.0
+  , settings_returnPolicy :: ReturnPolicy
+  }
+
+-- | Default pool settings
+--
+-- @since 0.1.0
+defaultSettings :: Settings
+defaultSettings = PoolSettings
+  { settings_idleTimeout = 60 -- 60 seconds
+  , settings_returnPolicy = ReturnToMiddle
+  }
 
 -- | Pool of resources
 --
@@ -67,17 +128,17 @@ data Resource a =
 
 -- | Create a new pool that has no limit on how many resources it may create and hold.
 --
--- @since 0.0.0
+-- @since 0.1.0
 newUnlimitedPool
   :: (Concurrent.MonadConc m, MonadIO m)
   => m a
   -- ^ Resource creation
   -> (a -> m ())
   -- ^ Resource destruction
-  -> Time.NominalDiffTime
-  -- ^ Maximum idle time (+-1s) after which a resource is destroyed
+  -> Settings
+  -- ^ Pool settings
   -> m (Pool m a)
-newUnlimitedPool create destroy maxIdleTime = do
+newUnlimitedPool create destroy settings = do
   leftOversRef <- Concurrent.newIORefN "leftOvers" Seq.empty
 
   createdRef <- Concurrent.newIORefN "created" 0
@@ -123,12 +184,17 @@ newUnlimitedPool create destroy maxIdleTime = do
     returnResource value = do
       now <- liftIO Time.getCurrentTime
       Concurrent.atomicModifyIORef' leftOversRef $ \leftOvers ->
-        (leftOvers Seq.:|> Resource now value, ())
+        ( applyReturnPolicy (settings_returnPolicy settings) (Resource now value) leftOvers
+        , ()
+        )
 
   _reaperThread <- Async.asyncWithUnmaskN "reaperThread" $ \unmask -> unmask $ forever $ do
     now <- liftIO Time.getCurrentTime
 
-    let isStillGood (Resource lastUse _) = Time.diffUTCTime now lastUse <= maxIdleTime
+    let
+      isStillGood (Resource lastUse _) =
+        Time.diffUTCTime now lastUse <= settings_idleTimeout settings
+
     oldResource <- Concurrent.atomicModifyIORef' leftOversRef (Seq.partition isStillGood)
 
     unless (null oldResource) $ void $
@@ -149,7 +215,7 @@ newUnlimitedPool create destroy maxIdleTime = do
 -- at the same time. When all resources are currently in use, further resource acquisition will
 -- block until one is no longer in use.
 --
--- @since 0.0.0
+-- @since 0.1.0
 newPool
   :: (Concurrent.MonadConc m, MonadIO m, MonadFail m)
   => m a
@@ -158,11 +224,11 @@ newPool
   -- ^ Resource destruction
   -> Int
   -- ^ Maximum number of resources to exist at the same time
-  -> Time.NominalDiffTime
-  -- ^ Maximum idle time after which a resource is destroyed
+  -> Settings
+  -- ^ Pool settings
   -> m (Pool m a)
-newPool create destroy maxElems maxIdleTime = do
-  basePool <- newUnlimitedPool create destroy maxIdleTime
+newPool create destroy maxElems settings = do
+  basePool <- newUnlimitedPool create destroy settings
   maxElemBarrier <- Concurrent.newQSem maxElems
 
   let

@@ -22,7 +22,8 @@ spec = do
         destroy _ =
           Concurrent.atomicModifyIORef' counterRef $ \count -> (pred count, ())
 
-      pool <- Pool.newUnlimitedPool create destroy 1
+      pool <- Pool.newUnlimitedPool create destroy
+        Pool.defaultSettings { Pool.settings_idleTimeout = 1 }
 
       Async.replicateConcurrently_ 200 $
         Pool.withResource pool $ const $ Concurrent.threadDelay 1_000
@@ -60,7 +61,7 @@ spec = do
           Concurrent.atomicModifyIORef' destroyedRef $ \count -> (count + 1, ())
           Concurrent.atomicModifyIORef' counterRef $ \count -> (count - 1, ())
 
-      pool <- Pool.newUnlimitedPool create destroy 60
+      pool <- Pool.newUnlimitedPool create destroy Pool.defaultSettings
 
       Async.replicateConcurrently_ 200 $ do
         Pool.withResource pool $ const $ Concurrent.threadDelay 1_000
@@ -93,7 +94,7 @@ spec = do
         destroy _ =
           Concurrent.atomicModifyIORef' counterRef $ \count -> (pred count, ())
 
-      pool <- Pool.newPool create destroy 10 60
+      pool <- Pool.newPool create destroy 10 Pool.defaultSettings
 
       Async.replicateConcurrently_ 200 $ do
         Pool.withResource pool $ const $ Concurrent.threadDelay 1_000
