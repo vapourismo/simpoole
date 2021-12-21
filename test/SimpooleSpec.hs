@@ -72,6 +72,7 @@ spec = do
 
       created <- Concurrent.readIORef createdRef
       Pool.metrics_createdResources metrics `shouldBe` created
+      Pool.metrics_createdResources metrics `shouldBe` Pool.metrics_maxLiveResources metrics
 
       destroyed <- Concurrent.readIORef destroyedRef
       Pool.metrics_destroyedResources metrics `shouldBe` destroyed
