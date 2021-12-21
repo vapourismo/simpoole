@@ -89,6 +89,9 @@ data Settings = PoolSettings
   --
   -- @since 0.1.0
   , settings_returnPolicy :: ReturnPolicy
+  -- ^ Read documentation on 'ReturnPolicy' for details.
+  --
+  -- @since 0.1.0
   }
 
 -- | Default pool settings
