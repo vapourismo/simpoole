@@ -1,5 +1,9 @@
 # simpoole
 
+## Unreleased
+
+* Make idle timeout optional
+
 ## 0.1.0
 
 * Expose helper functions: acquireResource, returnResource, destroyResource

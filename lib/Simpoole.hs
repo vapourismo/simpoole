@@ -82,8 +82,10 @@ applyReturnPolicy policy value seq =
 --
 -- @since 0.1.0
 data Settings = PoolSettings
-  { settings_idleTimeout :: Time.NominalDiffTime
+  { settings_idleTimeout :: Maybe Time.NominalDiffTime
   -- ^ Maximum idle time after which a resource is destroyed
+  --
+  -- Setting it to @Nothing@ means that nothing will ever be destroyed based on idle time.
   --
   -- @since 0.1.0
   , settings_returnPolicy :: ReturnPolicy
@@ -94,7 +96,7 @@ data Settings = PoolSettings
 -- @since 0.1.0
 defaultSettings :: Settings
 defaultSettings = PoolSettings
-  { settings_idleTimeout = 60 -- 60 seconds
+  { settings_idleTimeout = Just 60 -- 60 seconds
   , settings_returnPolicy = ReturnToMiddle
   }
 
@@ -194,21 +196,20 @@ newUnlimitedPool create destroy settings = do
         , ()
         )
 
-  _reaperThread <- Async.asyncWithUnmaskN "reaperThread" $ \unmask -> unmask $ forever $ do
-    now <- liftIO Time.getCurrentTime
+  for_ (settings_idleTimeout settings) $ \idleTimeout -> void $
+    Async.asyncWithUnmaskN "reaperThread" $ \unmask -> unmask $ forever $ do
+      now <- liftIO Time.getCurrentTime
 
-    let
-      isStillGood (Resource lastUse _) =
-        Time.diffUTCTime now lastUse <= settings_idleTimeout settings
+      let isStillGood (Resource lastUse _) = Time.diffUTCTime now lastUse <= idleTimeout
 
-    oldResource <- Concurrent.atomicModifyIORef' leftOversRef (Seq.partition isStillGood)
+      oldResource <- Concurrent.atomicModifyIORef' leftOversRef (Seq.partition isStillGood)
 
-    unless (null oldResource) $ void $
-      Async.asyncN "destructionThread" $
-        for_ oldResource $ \(Resource _ value) ->
-          Catch.try @_ @Catch.SomeException $ wrappedDestroy value
+      unless (null oldResource) $ void $
+        Async.asyncN "destructionThread" $
+          for_ oldResource $ \(Resource _ value) ->
+            Catch.try @_ @Catch.SomeException $ wrappedDestroy value
 
-    Concurrent.threadDelay 1_000_000
+      Concurrent.threadDelay 1_000_000
 
   pure Pool
     { pool_acquire = acquireResource
