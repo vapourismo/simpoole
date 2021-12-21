@@ -98,7 +98,7 @@ data Settings = PoolSettings
   --
   -- @Nothing@ means unlimited.
   --
-  -- @since tbd
+  -- @since 0.2.0
   }
 
 -- | Default pool settings
@@ -264,7 +264,7 @@ newLimitedPool create destroy maxElems settings = do
 
 -- | Create a new pool.
 --
--- @since tbd
+-- @since 0.2.0
 newPool
   :: (Concurrent.MonadConc m, MonadIO m)
   => m a

@@ -1,6 +1,6 @@
 # simpoole
 
-## Unreleased
+## 0.2.0
 
 * Make idle timeout optional
 * Overhaul newPool function to be able to produce limited and unlimited pools alike
