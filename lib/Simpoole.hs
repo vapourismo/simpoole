@@ -124,7 +124,7 @@ data Resource a =
     Time.UTCTime
     -- ^ Last use time
     a
-    -- ^ The resource itesemf
+    -- ^ The resource item
 
 -- | Create a new pool that has no limit on how many resources it may create and hold.
 --
