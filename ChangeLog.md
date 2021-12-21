@@ -4,6 +4,8 @@
 
 * Expose helper functions: acquireResource, returnResource, destroyResource
 * Track number of idle resources as part of metrics
+* Unify pool settings into Settings type
+* Allow configuration of "return policy" which helps to optimize the pool
 
 ## 0.0.1
 
