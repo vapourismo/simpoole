@@ -9,7 +9,6 @@
 module Simpoole
   ( Pool
   , mapPool
-  , newUnlimitedPool
   , newPool
   , withResource
   , acquireResource
@@ -30,10 +29,12 @@ import qualified Control.Concurrent.Classy.Async as Async
 import           Control.Monad (forever, unless, void)
 import qualified Control.Monad.Catch as Catch
 import           Control.Monad.IO.Class (MonadIO (liftIO))
+import           Data.Coerce (coerce)
 import           Data.Foldable (for_)
 import qualified Data.Sequence as Seq
 import qualified Data.Time as Time
 import           Numeric.Natural (Natural)
+import           Simpoole.Internal (FailToIO (..), failToIO)
 
 -- | Strategy to use when returning resources to the pool
 --
@@ -92,6 +93,12 @@ data Settings = PoolSettings
   -- ^ Read documentation on 'ReturnPolicy' for details.
   --
   -- @since 0.1.0
+  , settings_maxLiveLimit :: Maybe Int
+  -- ^ Maximum number of resources that may live at the same time.
+  --
+  -- @Nothing@ means unlimited.
+  --
+  -- @since tbd
   }
 
 -- | Default pool settings
@@ -101,6 +108,7 @@ defaultSettings :: Settings
 defaultSettings = PoolSettings
   { settings_idleTimeout = Just 60 -- 60 seconds
   , settings_returnPolicy = ReturnToMiddle
+  , settings_maxLiveLimit = Nothing
   }
 
 -- | Pool of resources
@@ -138,8 +146,6 @@ data Resource a =
     -- ^ The resource item
 
 -- | Create a new pool that has no limit on how many resources it may create and hold.
---
--- @since 0.1.0
 newUnlimitedPool
   :: (Concurrent.MonadConc m, MonadIO m)
   => m a
@@ -224,9 +230,7 @@ newUnlimitedPool create destroy settings = do
 -- | Similar to 'newUnlimitedPool' but allows you to limit the number of resources that will exist
 -- at the same time. When all resources are currently in use, further resource acquisition will
 -- block until one is no longer in use.
---
--- @since 0.1.0
-newPool
+newLimitedPool
   :: (Concurrent.MonadConc m, MonadIO m, MonadFail m)
   => m a
   -- ^ Resource creation
@@ -237,7 +241,7 @@ newPool
   -> Settings
   -- ^ Pool settings
   -> m (Pool m a)
-newPool create destroy maxElems settings = do
+newLimitedPool create destroy maxElems settings = do
   basePool <- newUnlimitedPool create destroy settings
   maxElemBarrier <- Concurrent.newQSem maxElems
 
@@ -257,6 +261,26 @@ newPool create destroy maxElems settings = do
     , pool_destroy = giveBackResource pool_destroy
     , pool_metrics = pool_metrics basePool
     }
+
+-- | Create a new pool.
+--
+-- @since tbd
+newPool
+  :: (Concurrent.MonadConc m, MonadIO m)
+  => m a
+  -- ^ Resource creation
+  -> (a -> m ())
+  -- ^ Resource destruction
+  -> Settings
+  -- ^ Pool settings
+  -> m (Pool m a)
+newPool create destroy settings =
+  case settings_maxLiveLimit settings of
+    Just maxLive -> failToIO $ do -- Translate the MonadFail constraint to MonadIO.
+      pool <- newLimitedPool (coerce create) (coerce destroy) maxLive settings
+      pure (mapPool coerce pool)
+
+    Nothing -> newUnlimitedPool create destroy settings
 
 -- | Use a resource from the pool. Once the continuation returns, the resource will be returned to
 -- the pool. If the given continuation throws an error then the acquired resource will be destroyed

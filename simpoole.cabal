@@ -30,6 +30,7 @@ library
                     time
   hs-source-dirs:   lib
   exposed-modules:  Simpoole
+  other-modules:    Simpoole.Internal
 
 test-suite simpoole-tests
   import:           warnings

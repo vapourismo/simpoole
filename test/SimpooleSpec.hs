@@ -11,7 +11,7 @@ import           Test.Hspec (Spec, describe, it, shouldBe, shouldSatisfy)
 
 spec :: Spec
 spec = do
-  describe "newUnlimitedPool" $ do
+  describe "newPool" $ do
     it "eventually frees all resources" $ do
       counterRef <- Concurrent.newIORefN "counterRef" (0 :: Integer)
 
@@ -22,8 +22,8 @@ spec = do
         destroy _ =
           Concurrent.atomicModifyIORef' counterRef $ \count -> (pred count, ())
 
-      pool <- Pool.newUnlimitedPool create destroy
-        Pool.defaultSettings { Pool.settings_idleTimeout = 1 }
+      pool <- Pool.newPool create destroy
+        Pool.defaultSettings { Pool.settings_idleTimeout = Just 1 }
 
       Async.replicateConcurrently_ 200 $
         Pool.withResource pool $ const $ Concurrent.threadDelay 1_000
@@ -61,7 +61,7 @@ spec = do
           Concurrent.atomicModifyIORef' destroyedRef $ \count -> (count + 1, ())
           Concurrent.atomicModifyIORef' counterRef $ \count -> (count - 1, ())
 
-      pool <- Pool.newUnlimitedPool create destroy Pool.defaultSettings
+      pool <- Pool.newPool create destroy Pool.defaultSettings
 
       Async.replicateConcurrently_ 200 $ do
         Pool.withResource pool $ const $ Concurrent.threadDelay 1_000
@@ -81,7 +81,6 @@ spec = do
       maxLive <- Concurrent.readIORef maxRef
       fromIntegral (Pool.metrics_maxLiveResources metrics) `shouldBe` maxLive
 
-  describe "newPool" $ do
     it "never allocates more than allowed" $ do
       counterRef <- Concurrent.newIORefN "counterRef" (0 :: Integer)
       maxRef <- Concurrent.newIORefN "maxRef" 0
@@ -94,7 +93,8 @@ spec = do
         destroy _ =
           Concurrent.atomicModifyIORef' counterRef $ \count -> (pred count, ())
 
-      pool <- Pool.newPool create destroy 10 Pool.defaultSettings
+      pool <- Pool.newPool create destroy Pool.defaultSettings
+        { Pool.settings_maxLiveLimit = Just 10 }
 
       Async.replicateConcurrently_ 200 $ do
         Pool.withResource pool $ const $ Concurrent.threadDelay 1_000
