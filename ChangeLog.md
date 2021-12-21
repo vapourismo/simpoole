@@ -1,6 +1,6 @@
 # simpoole
 
-## 0.1.0 (Unreleased)
+## 0.1.0
 
 * Expose helper functions: acquireResource, returnResource, destroyResource
 * Track number of idle resources as part of metrics
