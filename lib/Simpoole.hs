@@ -12,6 +12,9 @@ module Simpoole
   , newUnlimitedPool
   , newPool
   , withResource
+  , acquireResource
+  , returnResource
+  , destroyResource
   , poolMetrics
 
   , Metrics (..)
@@ -177,6 +180,30 @@ withResource pool f =
     pure result
 
 {-# INLINE withResource #-}
+
+-- | Acquire a resource.
+--
+-- @since 0.0.2
+acquireResource :: Pool m a -> m a
+acquireResource = pool_acquire
+
+{-# INLINE acquireResource #-}
+
+-- | Return a resource to the pool.
+--
+-- @since 0.0.2
+returnResource :: Pool m a -> a -> m ()
+returnResource = pool_return
+
+{-# INLINE returnResource #-}
+
+-- | Destroy a resource.
+--
+-- @since 0.0.2
+destroyResource :: Pool m a -> a -> m ()
+destroyResource = pool_destroy
+
+{-# INLINE destroyResource #-}
 
 -- | Fetch pool metrics.
 --

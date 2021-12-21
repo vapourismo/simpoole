@@ -1,5 +1,9 @@
 # simpoole
 
+## 0.0.2 (Unreleased)
+
+* Expose helper functions: acquireResource, returnResource, destroyResource
+
 ## 0.0.1
 
 * Fix max live metric
