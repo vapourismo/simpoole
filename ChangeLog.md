@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Make idle timeout optional
+* Overhaul newPool function to be able to produce limited and unlimited pools alike
 
 ## 0.1.0
 
