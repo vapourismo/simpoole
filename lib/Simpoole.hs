@@ -56,7 +56,7 @@ data ReturnPolicy
   -- pool in order to be ready for burst workloads.
   --
   -- Note: This strategy can lead to no resources ever being destroyed when all resources are
-  -- continuously used within the idle timeout.
+  -- repeatedly used within the idle timeout.
   --
   -- @since 0.1.0
   | ReturnToMiddle
