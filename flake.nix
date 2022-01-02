@@ -48,9 +48,7 @@
 
       devShell = mkShell {
         buildInputs = [
-          (haskellPackages.ghcWithPackages (hspkgs:
-            hspkgs.simpoole.propagatedBuildInputs ++ hspkgs.simpoole.buildInputs
-          ))
+          ghc
           cabal-install
           haskell-language-server
           hlint
