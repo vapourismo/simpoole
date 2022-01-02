@@ -7,16 +7,32 @@
 
   outputs = { self, nixpkgs, flake-utils }: {
     overlay = final: prev: {
-      haskell = prev.haskell.override {
-        packageOverrides = final: prev: {
-          simpoole = prev.callCabal2nix "simpoole" self { };
+      haskell = prev.haskell // {
+        packageOverrides = hfinal: hprev: {
+          simpoole =
+            hfinal.callCabal2nix "simpoole"
+              (
+                final.nix-gitignore.gitignoreSourcePure
+                  [
+                    ./.gitignore
+                    "*.nix"
+                    "flake.lock"
+                    "*.yaml"
+                    "cabal.project*"
+                    ".vscode"
+                    ".github"
+                    "*.md"
+                  ]
+                  self
+              )
+              { };
         };
       };
     };
   } // flake-utils.lib.eachDefaultSystem (system:
     with (import nixpkgs {
       inherit system;
-      config = { overlays = [ self.overlay ]; };
+      overlays = [ self.overlay ];
     });
 
     {
