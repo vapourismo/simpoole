@@ -33,6 +33,7 @@ library
   exposed-modules:  Simpoole
                     Simpoole.Monad
                     Simpoole.Monad.Internal
+                    Simpoole.Monad.Class
   other-modules:    Simpoole.Internal
 
 test-suite simpoole-tests

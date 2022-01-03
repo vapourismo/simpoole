@@ -12,7 +12,6 @@
 
 module Simpoole.Monad.Internal
   ( PoolEnv (..)
-  , MonadPool (..)
   , PoolT (..)
   , runPoolT
   , hoistPoolT
@@ -24,17 +23,13 @@ import qualified Control.Monad.Conc.Class as Conc
 import           Control.Monad.Error.Class (MonadError)
 import           Control.Monad.IO.Class (MonadIO)
 import qualified Control.Monad.RWS.Lazy as RWS.Lazy
-import qualified Control.Monad.RWS.Strict as RWS
 import qualified Control.Monad.Reader as Reader
 import           Control.Monad.State.Class (MonadState)
-import qualified Control.Monad.State.Lazy as State.Lazy
-import qualified Control.Monad.State.Strict as State
 import           Control.Monad.Trans (MonadTrans (..))
 import           Control.Monad.Writer.Class (MonadWriter)
-import qualified Control.Monad.Writer.Lazy as Writer.Lazy
-import qualified Control.Monad.Writer.Strict as Writer
 import           Data.Proxy (Proxy (Proxy))
 import qualified Simpoole as Pool
+import           Simpoole.Monad.Class (MonadPool (..))
 
 data PoolEnv m resource = PoolEnv
   { poolEnv_resource :: Maybe resource
@@ -74,6 +69,18 @@ newtype PoolT resource m a = PoolT
     , MonadError e
     , MonadWriter w
     )
+
+instance Catch.MonadMask m => MonadPool resource (PoolT resource m) where
+  withResource f = PoolT $ Reader.ReaderT $ \poolEnv ->
+    case poolEnv_resource poolEnv of
+      Nothing ->
+        Pool.withResource (poolEnv_pool poolEnv) $ \resource ->
+          Reader.runReaderT (unPoolT (f resource)) poolEnv { poolEnv_resource = Just resource }
+
+      Just resource ->
+        Reader.runReaderT (unPoolT (f resource)) poolEnv
+
+  {-# INLINE withResource #-}
 
 instance MonadTrans (PoolT resource) where
   lift = PoolT . Reader.ReaderT . const
@@ -288,66 +295,3 @@ hoistPoolT f action = PoolT $ Reader.ReaderT $ \env ->
   f (Reader.runReaderT (unPoolT action) env)
 
 {-# INLINE hoistPoolT #-}
-
--- | A pooled resource is available through @m@
---
--- @since tbd
-class MonadPool resource m where
-  -- | Grab a resource and do something with it.
-  --
-  -- @since tbd
-  withResource :: (resource -> m a) -> m a
-
-instance MonadPool resource m => MonadPool resource (State.StateT s m) where
-  withResource f = State.StateT $ \state ->
-    withResource $ \resource -> State.runStateT (f resource) state
-
-  {-# INLINE withResource #-}
-
-instance MonadPool resource m => MonadPool resource (State.Lazy.StateT s m) where
-  withResource f = State.Lazy.StateT $ \state ->
-    withResource $ \resource -> State.Lazy.runStateT (f resource) state
-
-  {-# INLINE withResource #-}
-
-instance MonadPool resource m => MonadPool resource (Writer.WriterT w m) where
-  withResource f = Writer.WriterT $
-    withResource $ \resource -> Writer.runWriterT $ f resource
-
-  {-# INLINE withResource #-}
-
-instance MonadPool resource m => MonadPool resource (Writer.Lazy.WriterT w m) where
-  withResource f = Writer.Lazy.WriterT $
-    withResource $ \resource -> Writer.Lazy.runWriterT $ f resource
-
-  {-# INLINE withResource #-}
-
-instance MonadPool resource m => MonadPool resource (Reader.ReaderT r m) where
-  withResource f = Reader.ReaderT $ \state ->
-    withResource $ \resource -> Reader.runReaderT (f resource) state
-
-  {-# INLINE withResource #-}
-
-instance MonadPool resource m => MonadPool resource (RWS.RWST r s w m) where
-  withResource f = RWS.RWST $ \env state ->
-    withResource $ \resource -> RWS.runRWST (f resource) env state
-
-  {-# INLINE withResource #-}
-
-instance MonadPool resource m => MonadPool resource (RWS.Lazy.RWST r s w m) where
-  withResource f = RWS.Lazy.RWST $ \env state ->
-    withResource $ \resource -> RWS.Lazy.runRWST (f resource) env state
-
-  {-# INLINE withResource #-}
-
-instance Catch.MonadMask m => MonadPool resource (PoolT resource m) where
-  withResource f = PoolT $ Reader.ReaderT $ \poolEnv ->
-    case poolEnv_resource poolEnv of
-      Nothing ->
-        Pool.withResource (poolEnv_pool poolEnv) $ \resource ->
-          Reader.runReaderT (unPoolT (f resource)) poolEnv { poolEnv_resource = Just resource }
-
-      Just resource ->
-        Reader.runReaderT (unPoolT (f resource)) poolEnv
-
-  {-# INLINE withResource #-}

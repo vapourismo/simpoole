@@ -1,9 +1,10 @@
 module Simpoole.Monad
-  ( Internal.MonadPool (..)
-  , Internal.PoolT
-  , Internal.runPoolT
-  , Internal.hoistPoolT
+  ( MonadPool (..)
+  , PoolT
+  , runPoolT
+  , hoistPoolT
   )
 where
 
-import qualified Simpoole.Monad.Internal as Internal
+import Simpoole.Monad.Class (MonadPool (..))
+import Simpoole.Monad.Internal (PoolT (..), hoistPoolT, runPoolT)
