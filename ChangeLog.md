@@ -1,5 +1,11 @@
 # simpoole
 
+## Unreleased
+
+* Introduce Simpoole.Monad module
+  * MonadPool to abstract over pooled resources in a monad (or transformer stack)
+  * PoolT to interpret MonadPool, but also to help with re-entrance problems
+
 ## 0.2.0
 
 * Make idle timeout optional
