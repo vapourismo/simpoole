@@ -19,6 +19,7 @@ where
 import qualified Control.Monad.Catch as Catch
 import qualified Control.Monad.Conc.Class as Conc
 import           Control.Monad.Error.Class (MonadError)
+import           Control.Monad.IO.Class (MonadIO)
 import qualified Control.Monad.RWS.Lazy as RWS.Lazy
 import qualified Control.Monad.RWS.Strict as RWS
 import qualified Control.Monad.Reader as Reader
@@ -62,6 +63,7 @@ newtype PoolT resource m a = PoolT
     , Applicative
     , Monad
     , MonadFail
+    , MonadIO
     , Catch.MonadThrow
     , Catch.MonadCatch
     , Catch.MonadMask
