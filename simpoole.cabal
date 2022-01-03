@@ -27,9 +27,11 @@ library
                     concurrency >= 1.6.0.0,
                     containers >= 0.5.8,
                     exceptions,
-                    time
+                    time,
+                    mtl
   hs-source-dirs:   lib
   exposed-modules:  Simpoole
+                    Simpoole.Monad
   other-modules:    Simpoole.Internal
 
 test-suite simpoole-tests
@@ -44,3 +46,4 @@ test-suite simpoole-tests
   hs-source-dirs:   test
   main-is:          Main.hs
   other-modules:    SimpooleSpec
+                    Simpoole.MonadSpec
