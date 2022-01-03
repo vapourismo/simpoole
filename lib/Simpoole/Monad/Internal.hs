@@ -235,7 +235,7 @@ instance Conc.MonadConc m => Conc.MonadConc (PoolT resource m) where
 
   {-# INLINE readForCAS #-}
 
-  peekTicket' _ y = Conc.peekTicket' @m Proxy y
+  peekTicket' _ = Conc.peekTicket' @m Proxy
 
   {-# INLINE peekTicket' #-}
 
