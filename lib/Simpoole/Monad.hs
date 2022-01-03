@@ -10,7 +10,7 @@
 
 module Simpoole.Monad
   ( MonadPool (..)
-  , PoolT
+  , PoolT (..)
   , runPoolT
   , hoistPoolT
   )
