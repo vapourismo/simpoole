@@ -51,7 +51,7 @@ data PoolEnv m resource = PoolEnv
 -- In the above example @x@ and @y@ are the same resource.
 --
 -- Note, this does not apply when spawning new threads in the outer 'withResource' scope using
--- 'MonadConc'.
+-- 'Conc.MonadConc'.
 --
 -- > withResource $ \x -> async $ withResource $ \y -> ...
 --
