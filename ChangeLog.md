@@ -1,5 +1,9 @@
 # simpoole
 
+## Unreleased
+
+* Expose pool metrics from PoolT
+
 ## 0.3.0
 
 * Introduce Simpoole.Monad module

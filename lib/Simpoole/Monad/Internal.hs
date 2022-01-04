@@ -15,6 +15,7 @@ module Simpoole.Monad.Internal
   , PoolT (..)
   , runPoolT
   , hoistPoolT
+  , metricsPoolT
   )
 where
 
@@ -28,6 +29,7 @@ import           Control.Monad.State.Class (MonadState)
 import           Control.Monad.Trans (MonadTrans (..))
 import           Control.Monad.Writer.Class (MonadWriter)
 import           Data.Proxy (Proxy (Proxy))
+import           Numeric.Natural (Natural)
 import qualified Simpoole as Pool
 import           Simpoole.Monad.Class (MonadPool (..))
 
@@ -295,3 +297,12 @@ hoistPoolT f action = PoolT $ Reader.ReaderT $ \env ->
   f (Reader.runReaderT (unPoolT action) env)
 
 {-# INLINE hoistPoolT #-}
+
+-- | Retrieve the internal pool metrics.
+--
+-- See 'Pool.poolMetrics'.
+--
+-- @since tbd
+metricsPoolT :: PoolT resource m (Pool.Metrics Natural)
+metricsPoolT = PoolT $ Reader.ReaderT $ \env ->
+  Pool.poolMetrics (poolEnv_pool env)

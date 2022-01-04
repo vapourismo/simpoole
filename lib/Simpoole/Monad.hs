@@ -3,8 +3,9 @@ module Simpoole.Monad
   , PoolT
   , runPoolT
   , hoistPoolT
+  , metricsPoolT
   )
 where
 
 import Simpoole.Monad.Class (MonadPool (..))
-import Simpoole.Monad.Internal (PoolT (..), hoistPoolT, runPoolT)
+import Simpoole.Monad.Internal (PoolT (..), hoistPoolT, metricsPoolT, runPoolT)
