@@ -53,7 +53,7 @@ data PoolEnv m resource = PoolEnv
 -- In the special case above, @x@ and @y@ are not the same resource because the closure given to
 -- 'async' does not inherit the associated resource from the outer 'withResource' closure.
 --
--- @since tbd
+-- @since 0.3.0
 newtype PoolT resource m a = PoolT
   { unPoolT :: Reader.ReaderT (PoolEnv m resource) m a }
   deriving newtype
@@ -277,7 +277,7 @@ instance Conc.MonadConc m => Conc.MonadConc (PoolT resource m) where
 
 -- | Run the monad transformer against the given pool.
 --
--- @since tbd
+-- @since 0.3.0
 runPoolT :: Pool.Pool m resource -> PoolT resource m a -> m a
 runPoolT pool (PoolT inner) =
   Reader.runReaderT inner PoolEnv
@@ -289,7 +289,7 @@ runPoolT pool (PoolT inner) =
 
 -- | Lift an operation on the underlying functor.
 --
--- @since tbd
+-- @since 0.3.0
 hoistPoolT :: (m a -> m b) -> PoolT resource m a -> PoolT resource m b
 hoistPoolT f action = PoolT $ Reader.ReaderT $ \env ->
   f (Reader.runReaderT (unPoolT action) env)

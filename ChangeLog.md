@@ -1,6 +1,6 @@
 # simpoole
 
-## Unreleased
+## 0.3.0
 
 * Introduce Simpoole.Monad module
   * MonadPool to abstract over pooled resources in a monad (or transformer stack)

@@ -13,11 +13,11 @@ import qualified Control.Monad.Writer.Strict as Writer
 
 -- | A pooled resource is available through @m@
 --
--- @since tbd
+-- @since 0.3.0
 class MonadPool resource m where
   -- | Grab a resource and do something with it.
   --
-  -- @since tbd
+  -- @since 0.3.0
   withResource :: (resource -> m a) -> m a
 
 instance MonadPool resource m => MonadPool resource (State.StateT s m) where
