@@ -59,19 +59,20 @@ data PoolEnv m resource = PoolEnv
 newtype PoolT resource m a = PoolT
   { unPoolT :: Reader.ReaderT (PoolEnv m resource) m a }
   deriving newtype
-    ( Functor
-    , Applicative
-    , Monad
-    , MonadFail
-    , MonadIO
-    , Catch.MonadThrow
-    , Catch.MonadCatch
-    , Catch.MonadMask
-    , MonadState s
-    , MonadError e
-    , MonadWriter w
+    ( Functor -- ^ @since 0.3.0
+    , Applicative -- ^ @since 0.3.0
+    , Monad -- ^ @since 0.3.0
+    , MonadFail -- ^ @since 0.3.0
+    , MonadIO -- ^ @since 0.3.0
+    , Catch.MonadThrow -- ^ @since 0.3.0
+    , Catch.MonadCatch -- ^ @since 0.3.0
+    , Catch.MonadMask -- ^ @since 0.3.0
+    , MonadState s -- ^ @since 0.3.0
+    , MonadError e -- ^ @since 0.3.0
+    , MonadWriter w -- ^ @since 0.3.0
     )
 
+-- | @since 0.3.0
 instance Catch.MonadMask m => MonadPool resource (PoolT resource m) where
   withResource f = PoolT $ Reader.ReaderT $ \poolEnv ->
     case poolEnv_resource poolEnv of
@@ -84,11 +85,13 @@ instance Catch.MonadMask m => MonadPool resource (PoolT resource m) where
 
   {-# INLINE withResource #-}
 
+-- | @since 0.3.0
 instance MonadTrans (PoolT resource) where
   lift = PoolT . Reader.ReaderT . const
 
   {-# INLINE lift #-}
 
+-- | @since 0.3.0
 instance Reader.MonadReader r m => Reader.MonadReader r (PoolT resource m) where
   ask = lift Reader.ask
 
@@ -102,6 +105,7 @@ instance Reader.MonadReader r m => Reader.MonadReader r (PoolT resource m) where
 
   {-# INLINE reader #-}
 
+-- | @since 0.3.0
 instance Conc.MonadConc m => Conc.MonadConc (PoolT resource m) where
   type STM (PoolT resource m) = Conc.STM m
 
