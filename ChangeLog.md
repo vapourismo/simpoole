@@ -1,6 +1,6 @@
 # simpoole
 
-## Unreleased
+## 0.4.0
 
 * Expose pool metrics from PoolT
 * Add MonadPool instances for Product, IsConc, CatchT and IdentityT

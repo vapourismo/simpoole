@@ -73,7 +73,7 @@ instance MonadPool resource m => MonadPool resource (RWS.Lazy.RWST r s w m) wher
 
   {-# INLINE withResource #-}
 
--- | @since tbd
+-- | @since 0.4.0
 instance (MonadPool resource f, MonadPool resource g) => MonadPool resource (Product f g) where
   withResource f =
     Pair (withResource (getLeft . f)) (withResource (getRight . f))
@@ -84,19 +84,19 @@ instance (MonadPool resource f, MonadPool resource g) => MonadPool resource (Pro
 
   {-# INLINE withResource #-}
 
--- | @since tbd
+-- | @since 0.4.0
 instance (MonadPool resource m, Conc.MonadConc m) => MonadPool resource (Conc.IsConc m) where
   withResource f = Conc.toIsConc $ withResource $ Conc.fromIsConc . f
 
   {-# INLINE withResource #-}
 
--- | @since tbd
+-- | @since 0.4.0
 instance MonadPool resource m => MonadPool resource (CatchT m) where
   withResource f = CatchT $ withResource $ runCatchT . f
 
   {-# INLINE withResource #-}
 
--- | @since tbd
+-- | @since 0.4.0
 instance MonadPool resource m => MonadPool resource (IdentityT m) where
   withResource f = IdentityT $ withResource $ runIdentityT . f
 

@@ -306,7 +306,7 @@ hoistPoolT f action = PoolT $ Reader.ReaderT $ \env ->
 --
 -- See 'Pool.poolMetrics'.
 --
--- @since tbd
+-- @since 0.4.0
 metricsPoolT :: PoolT resource m (Pool.Metrics Natural)
 metricsPoolT = PoolT $ Reader.ReaderT $ \env ->
   Pool.poolMetrics (poolEnv_pool env)
