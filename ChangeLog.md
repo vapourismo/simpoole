@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Expose pool metrics from PoolT
+* Add MonadPool instances for Product, IsConc, CatchT and IdentityT
 
 ## 0.3.0
 

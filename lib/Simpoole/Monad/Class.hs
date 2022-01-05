@@ -3,6 +3,9 @@
 
 module Simpoole.Monad.Class (MonadPool (..)) where
 
+import           Control.Monad.Catch.Pure (CatchT (..))
+import qualified Control.Monad.Conc.Class as Conc
+import           Control.Monad.Identity (IdentityT (..))
 import qualified Control.Monad.RWS.Lazy as RWS.Lazy
 import qualified Control.Monad.RWS.Strict as RWS
 import qualified Control.Monad.Reader as Reader
@@ -10,6 +13,7 @@ import qualified Control.Monad.State.Lazy as State.Lazy
 import qualified Control.Monad.State.Strict as State
 import qualified Control.Monad.Writer.Lazy as Writer.Lazy
 import qualified Control.Monad.Writer.Strict as Writer
+import           Data.Functor.Product (Product (..))
 
 -- | A pooled resource is available through @m@
 --
@@ -66,5 +70,34 @@ instance MonadPool resource m => MonadPool resource (RWS.RWST r s w m) where
 instance MonadPool resource m => MonadPool resource (RWS.Lazy.RWST r s w m) where
   withResource f = RWS.Lazy.RWST $ \env state ->
     withResource $ \resource -> RWS.Lazy.runRWST (f resource) env state
+
+  {-# INLINE withResource #-}
+
+-- | @since tbd
+instance (MonadPool resource f, MonadPool resource g) => MonadPool resource (Product f g) where
+  withResource f =
+    Pair (withResource (getLeft . f)) (withResource (getRight . f))
+    where
+      getLeft (Pair l _) = l
+
+      getRight (Pair _ r) = r
+
+  {-# INLINE withResource #-}
+
+-- | @since tbd
+instance (MonadPool resource m, Conc.MonadConc m) => MonadPool resource (Conc.IsConc m) where
+  withResource f = Conc.toIsConc $ withResource $ Conc.fromIsConc . f
+
+  {-# INLINE withResource #-}
+
+-- | @since tbd
+instance MonadPool resource m => MonadPool resource (CatchT m) where
+  withResource f = CatchT $ withResource $ runCatchT . f
+
+  {-# INLINE withResource #-}
+
+-- | @since tbd
+instance MonadPool resource m => MonadPool resource (IdentityT m) where
+  withResource f = IdentityT $ withResource $ runIdentityT . f
 
   {-# INLINE withResource #-}
