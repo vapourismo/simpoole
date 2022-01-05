@@ -70,6 +70,8 @@ jobs:
           key: ${{ runner.os }}-hlint
 
       - uses: haskell/actions/setup@v1.2.7
+        with:
+          ghc-version: 9.0.2
 
       - name: Install HLint
         run: cabal install --installdir=. hlint --constraint 'hlint >= 3.3'
