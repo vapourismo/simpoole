@@ -27,7 +27,7 @@ jobs:
   HLint:
     uses: vapourismo/workflows/.github/workflows/haskell-hlint.yaml@master
     with:
-      path: '["lib", "test"]'
+      paths: lib test
 
   UploadCandidate:
     runs-on: ubuntu-latest
