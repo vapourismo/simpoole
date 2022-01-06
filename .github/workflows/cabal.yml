@@ -29,41 +29,15 @@ jobs:
     with:
       paths: lib test
 
-  UploadCandidate:
-    runs-on: ubuntu-latest
-    environment: hackage
-    if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+  Hackage:
+    name: Hackage
     needs:
       - BuildAndTest
       - HLint
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: haskell/actions/setup@v1.2.7
-
-      - run: |
-          git grep -nE '@since\s+[^0-9\.]+' && (echo Found unspecified versions!; exit 1) || true
-
-      - id: sdist
-        run: |
-          cabal sdist -o .
-
-          version_with_tags=$(echo '${{ github.ref_name }}' | sed -r 's/^v(.*)/\1/')
-          version=$(echo '${{ github.ref_name }}' | sed -r 's/^v([0-9\.]+)(-.*)?/\1/')
-          source_file=./simpoole-$version.tar.gz
-          test -r $source_file
-
-          echo "::set-output name=version::$version"
-          echo "::set-output name=version_with_tags::$version_with_tags"
-          echo "::set-output name=source_file::$source_file"
-
-      - run: |
-          cabal upload \
-            -u ${{ secrets.HACKAGE_USER }} \
-            -p ${{ secrets.HACKAGE_PASSWORD }} \
-            ${{ steps.sdist.outputs.source_file }}
-
-      - uses: softprops/action-gh-release@v1
-        if: steps.sdist.outputs.version_with_tags == steps.sdist.outputs.version
-        with:
-          files: ${{ steps.sdist.outputs.source_file }}
+    uses: vapourismo/workflows/.github/workflows/haskell-hackage-upload.yaml@master
+    with:
+      package-name: ${{ github.event.repository.name }}
+      environment: hackage
+    secrets:
+      hackage-user: ${{ secrets.HACKAGE_USER }}
+      hackage-password: ${{ secrets.HACKAGE_PASSWORD }}
